@@ -24,7 +24,7 @@ func processWord(wordList []string) bool {
 	return false
 }
 func replaceStuff(wordIn string, place int) string {
-	s := strings.ToLower(string(wordIn[place])) // CAMEL CASE MATTERS!!!
+	s := strings.ToLower(string(wordIn[place]))
 
 	word := strings.Split(wordIn, "")
 
@@ -51,7 +51,7 @@ func checkHash(word string, hash string) bool {
 	hsh := md5.New()
 	hsh.Write([]byte(word))
 	hashed := hex.EncodeToString(hsh.Sum(nil))
-	if hashed == hash { //Make this a program argument
+	if hashed == hash {
 		print("Password = " + word)
 		return true
 	}
