@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"cdec"
-	_ "cdec"
 	"crypto/md5"
 	"encoding/hex"
 	"os"
