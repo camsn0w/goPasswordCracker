@@ -6,21 +6,37 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"os"
+	"runtime/pprof"
 	"sort"
 	"strings"
+	"sync"
 	"unicode"
 )
 
-func processWord(wordList []string) bool {
-	hash := os.Args[1]
+func processWord(wordList []string) {
+	wg := &sync.WaitGroup{}
+	boolChan := make(chan bool)
 	for _, word := range wordList {
-		for _, val := range recPerm(word) {
+		wg.Add(1)
+		go hashPermutations(word, boolChan, wg)
+	}
+	wg.Wait()
+}
+func hashPermutations(word string, boolChan chan bool, group *sync.WaitGroup) {
+	defer group.Done()
+	hash := os.Args[1]
+	for _, val := range recPerm(word) {
+		select {
+		case <-boolChan:
+			return
+		default:
 			if checkHash(val, hash) {
-				return true
+				boolChan <- true
+				close(boolChan)
+				return
 			}
 		}
 	}
-	return false
 }
 func replaceStuff(wordIn string, place int) string {
 	s := strings.ToLower(string(wordIn[place]))
@@ -51,7 +67,7 @@ func checkHash(word string, hash string) bool {
 	hsh.Write([]byte(word))
 	hashed := hex.EncodeToString(hsh.Sum(nil))
 	if hashed == hash {
-		print("Password = " + word)
+		print("Password: " + word)
 		return true
 	}
 	return false
@@ -141,6 +157,8 @@ func main() {
 	for i := range nums {
 		commonWords = append(commonWords, sortedDict[i])
 	}
+	cpuProfile, _ := os.Create("cpuProfile")
+	pprof.StartCPUProfile(cpuProfile)
 	processWord(commonWords)
-
+	pprof.StopCPUProfile()
 }
