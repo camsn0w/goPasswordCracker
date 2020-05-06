@@ -14,25 +14,33 @@ import (
 )
 
 func processWord(wordList []string) {
+	stopNow := make(chan bool)
+	foundIt := make(chan bool)
 	wg := &sync.WaitGroup{}
-	boolChan := make(chan bool)
 	for _, word := range wordList {
-		wg.Add(1)
-		go hashPermutations(word, boolChan, wg)
+		select {
+		case <-foundIt:
+			close(stopNow)
+			return
+		default:
+			wg.Add(1)
+			go hashPermutations(word, foundIt, stopNow, wg)
+		}
 	}
 	wg.Wait()
 }
-func hashPermutations(word string, boolChan chan bool, group *sync.WaitGroup) {
+func hashPermutations(word string, foundIt chan bool, stopNow chan bool, group *sync.WaitGroup) {
 	defer group.Done()
 	hash := os.Args[1]
 	for _, val := range recPerm(word) {
 		select {
-		case <-boolChan:
+		case <-stopNow:
+			return
+		case <-foundIt:
 			return
 		default:
 			if checkHash(val, hash) {
-				boolChan <- true
-				close(boolChan)
+				close(foundIt)
 				return
 			}
 		}
