@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"os"
-	"runtime/pprof"
 	"sort"
 	"strings"
 	"sync"
@@ -165,8 +164,5 @@ func main() {
 	for i := range nums {
 		commonWords = append(commonWords, sortedDict[i])
 	}
-	cpuProfile, _ := os.Create("cpuProfile")
-	pprof.StartCPUProfile(cpuProfile)
 	processWord(commonWords)
-	pprof.StopCPUProfile()
 }
